@@ -69,7 +69,7 @@ def several_balls(number):
 def is_click(several_balls, mouse_x, mouse_y):
     #___ПРОВЕРЯЕТ, ПОПАЛ ЛИ ЩЕЛЧОК ПО ШАРУ___
     '''
-    Получает на вход массив характеристик шариков several_char,
+    Получает на вход массив характеристик шариков several_balls,
     координаты клика мыши
     Возвращает число попаданий
 
@@ -85,7 +85,7 @@ def is_click(several_balls, mouse_x, mouse_y):
 
     return (points)
 
-def change_position(several_char):
+def change_position(several_balls):
     #___МЕНЯЕТ КООРДИНАТЫ ШАРИКОВ___
     '''
     функция от массива координат набора шариков
@@ -96,7 +96,7 @@ def change_position(several_char):
     [3] - velocity_x, [4] - velocity_y, [5] - colour
 
     '''
-    several_char_bytime = []
+    several_balls_bytime = []
 
     for ball in several_balls:
 
