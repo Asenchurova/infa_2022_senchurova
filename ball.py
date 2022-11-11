@@ -3,15 +3,15 @@ from pygame.draw import *   #для рисования фигурок
 from random import randint  #для задания случайных хар-к шаров
 import pandas as pd         #для таблицы результатов
 
+print('enter your name')
 person = str(input())   #это понадобится для таблицы результатов
 result = 0              #баллы текущего игрока пока 0
 
 pygame.init()
 
-
 FPS = 25
-s_x = 1200  # размер экрана по горизонтали, очень не хотелось называть переменную длиннее
-s_y = 900   # размер экрана по вертикали, аналогично
+s_x = 1200  # размер экрана по горизонтали
+s_y = 900   # размер экрана по вертикали
 screen = pygame.display.set_mode((s_x, s_y))
 
 RED = (255, 0, 0)
@@ -41,14 +41,11 @@ def new_ball():
     r           = randint(10, 100)
     velocity_x  = randint(-5, 5)
     velocity_y  = randint(-5, 5)
-    color       = COLORS[randint(0, 5)]
-
-    
+    color       = COLORS[randint(0, 5)]  
 
     circle(screen, color, (x, y), r)
 
-    ball_char = [x, y, r, color, velocity_x, velocity_y]
-    return (ball_char)
+    return [x, y, r, color, velocity_x, velocity_y]
 
 def several_balls(number):
     # ___РИСУЕТ НЕСКОЛЬКО ШАРИКОВ___
@@ -74,13 +71,15 @@ def is_click(several_balls, mouse_x, mouse_y):
     Возвращает число попаданий
 
     Здесь, как и везде ранее, в массиве ball:
-    [0] - x, [1] - y, [2] - r, 
-    [3] - velocity_x, [4] - velocity_y, [5] - colour
+    [0] - x, [1] - y, [2] - r, [3] - colour,
+    [4] - velocity_x, [5] - velocity_y
+    Изначально планировалось перебирать массив иначе, но почему-то не получилось, поэтому такие некрасивые переменные
+
     '''
     points = 0
-    for ball in several_balls:
-
-        if (mouse_x - ball[0])**2 + (mouse_y - ball[1])**2 <= (ball[2])**2:
+    for i in several_balls:
+        
+        if (mouse_x - i[0])**2 + (mouse_y - i[1])**2 <= i[2]**2:
             points += 1
 
     return (points)
@@ -92,45 +91,49 @@ def change_position(several_balls):
     Возвращает массив новых характеристик шариков
     Учитывает отражение от стенок (меняет скорости на противоположные)
     Здесь, как и везде ранее, в массиве ball:
-    [0] - x, [1] - y, [2] - r, 
-    [3] - velocity_x, [4] - velocity_y, [5] - colour
+    [0] - x, [1] - y, [2] - r, [3] - colour,
+    [4] - velocity_x, [5] - velocity_y
 
     '''
     several_balls_bytime = []
+    x_bytime = 0
+    y_bytime = 0
 
     for ball in several_balls:
 
-        circle(screen, BLACK, (ball[0], ball[1]), ball[2])
-        if ((ball[0] + ball[2] > s_x) or (ball[0] - ball[2] <= 0)):
-            ball[3] *= (-1)
+        circle(screen, ball[3], (ball[0], ball[1]), ball[2])
 
-        if ((ball[1] + ball[2] > s_y) or (ball[1] - ball[2] <= 0)):
+        if (ball[0] + ball[2] > s_x) or (ball[0] - ball[2] <= 0):
             ball[4] *= (-1)
 
-        x_bytime = ball[0] + ball[3]
-        y_bytime = ball[1] + ball[4]
+        if (ball[1] + ball[2] > s_y) or (ball[1] - ball[2] <= 0):
+            ball[5] *= (-1)
+
+        x_bytime = ball[0] + ball[4]
+        y_bytime = ball[1] + ball[5]
 
         circle(screen, ball[5], (x_bytime, y_bytime), ball[2])
-        several_balls_bytime.append(x_bytime, y_bytime, ball[2], ball[3], ball[4], ball[5])
+        j = [x_bytime, y_bytime, ball[2], ball[3], ball[4], ball[5]]
+        several_balls_bytime.append(j)
 
     return(several_balls_bytime)
 
-def personal_score(person, result):
+def personal_score(name, result):
     #___ЗАПИСЫВАЕТ РЕЗУЛЬТАТ ОДНОГО ИГРОКА___
     '''
-    Принимает имя person и его очки result
-    Если игрока ещё нет, записывает в табличку.
-    '''
+   # Принимает имя person и его очки result
+   # Если игрока ещё нет, записывает в табличку.
+'''
     df = pd.read_csv('results.csv')
 
     print(list(df))
 
-    if not (person in list(df.users)):
-        df.loc[len(df.index)] = [person, str(result)]
+    if ((name in list(df['users'])) != 1):
+        df.loc[len(df.index)] = [name, int(result)]
     else:
-        df.at[list(df.users).index(person), 'result'] = result
+        df.at[list(df['users']).index(name), 'result'] = int(result)
 
-    export_csv = df.to_csv(r'results.csv')
+    export_csv = df.to_csv(r'results.csv', index = None, header = True)
 
 #функции кончились, функций дальше нет
 
@@ -138,15 +141,11 @@ pygame.display.update()
 clock = pygame.time.Clock()
 finished = False
 
-ball_counter = 0
-TIME = 60
-timer = 0
-
+TIME = 120  # влияет на то, как часто меняется набор шариков
+timer = 0   #таймер
 balls = several_balls(5)
 
 while not finished:
-    if ball_counter == 21:
-        finished = True 
 
     if timer == TIME:
         balls = several_balls(5)
@@ -164,7 +163,7 @@ while not finished:
             mouse_x, mouse_y = pygame.mouse.get_pos()
 
             if is_click(balls, mouse_x, mouse_y):
-                result += int(is_click)
+                result += 1
 
             print('Click!')
 
@@ -176,5 +175,5 @@ while not finished:
     timer += 1
 
 personal_score(person, result)
-
+print('Your result is', result, '!')
 pygame.quit()
